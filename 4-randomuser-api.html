@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Week 4 - Random User Profiles</title>
+<style>
+  body { font-family: system-ui, sans-serif; background:#faf5ff; margin:0; padding:30px 16px; }
+  .wrap { max-width:900px; margin:auto; text-align:center; }
+  button { background:#9333ea; color:#fff; border:0; padding:10px 20px; border-radius:8px; font-size:1rem; cursor:pointer; }
+  button:disabled { opacity:.5; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:16px; margin-top:24px; }
+  .user { background:#fff; border-radius:14px; padding:18px; box-shadow:0 2px 10px rgba(0,0,0,.08); }
+  .user img { width:96px; height:96px; border-radius:50%; object-fit:cover; }
+  .user h3 { margin:10px 0 4px; }
+  .user p { margin:2px 0; font-size:.88rem; color:#475569; word-break:break-all; }
+  #error { color:#dc2626; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Random User Profiles</h1>
+  <button id="loadBtn">Get 8 New Users</button>
+  <p id="status"></p>
+  <p id="error"></p>
+  <div class="grid" id="users"></div>
+</div>
+
+<script>
+const API = 'https://randomuser.me/api/?results=8';
+
+async function loadUsers() {
+  const btn = document.getElementById('loadBtn');
+  btn.disabled = true;
+  document.getElementById('status').textContent = 'Loading...';
+  document.getElementById('error').textContent = '';
+  try {
+    const res = await fetch(API);
+    if (!res.ok) throw new Error('HTTP error: ' + res.status);
+    const data = await res.json();
+    const grid = document.getElementById('users');
+    grid.innerHTML = '';
+    data.results.forEach(u => {
+      const card = document.createElement('div');
+      card.className = 'user';
+      card.innerHTML = `
+        <img src="${u.picture.large}" alt="photo">
+        <h3>${u.name.first} ${u.name.last}</h3>
+        <p>${u.email}</p>
+        <p>${u.location.city}, ${u.location.country}</p>`;
+      grid.appendChild(card);
+    });
+  } catch (err) {
+    document.getElementById('error').textContent = 'Could not load users: ' + err.message;
+  } finally {
+    document.getElementById('status').textContent = '';
+    btn.disabled = false;
+  }
+}
+document.getElementById('loadBtn').addEventListener('click', loadUsers);
+</script>
+</body>
+</html>

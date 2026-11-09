@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Week 6 - Country Explorer</title>
+<style>
+  body { font-family: system-ui, sans-serif; background:#f0f9ff; margin:0; padding:30px 16px; }
+  .wrap { max-width:820px; margin:auto; text-align:center; }
+  input { padding:9px 12px; border:1px solid #ccc; border-radius:8px; width:220px; }
+  button { background:#0369a1; color:#fff; border:0; padding:10px 18px; border-radius:8px; font-size:1rem; cursor:pointer; }
+  button:disabled { opacity:.5; }
+  table { width:100%; border-collapse:collapse; margin-top:24px; background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,.08); }
+  th, td { padding:10px 12px; text-align:left; border-bottom:1px solid #e2e8f0; }
+  th { background:#0369a1; color:#fff; }
+  td img { width:44px; border:1px solid #ddd; }
+  #error { color:#dc2626; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Country Explorer</h1>
+  <input id="name" value="korea" placeholder="Country name">
+  <button id="loadBtn">Search</button>
+  <p id="status"></p>
+  <p id="error"></p>
+  <div id="result"></div>
+</div>
+
+<script>
+async function loadCountries() {
+  const btn = document.getElementById('loadBtn');
+  const name = document.getElementById('name').value.trim();
+  if (!name) return;
+  btn.disabled = true;
+  document.getElementById('status').textContent = 'Loading...';
+  document.getElementById('error').textContent = '';
+  document.getElementById('result').innerHTML = '';
+  try {
+    const res = await fetch('https://restcountries.com/v3.1/name/' + encodeURIComponent(name));
+    if (!res.ok) throw new Error(res.status === 404 ? 'No country found' : 'HTTP error: ' + res.status);
+    const list = await res.json();
+    const rows = list.map(c => `
+      <tr>
+        <td><img src="${c.flags.png}" alt="flag"></td>
+        <td>${c.name.common}</td>
+        <td>${c.capital ? c.capital[0] : '-'}</td>
+        <td>${c.region}</td>
+        <td>${c.population.toLocaleString()}</td>
+      </tr>`).join('');
+    document.getElementById('result').innerHTML = `
+      <table>
+        <tr><th>Flag</th><th>Country</th><th>Capital</th><th>Region</th><th>Population</th></tr>
+        ${rows}
+      </table>`;
+  } catch (err) {
+    document.getElementById('error').textContent = err.message;
+  } finally {
+    document.getElementById('status').textContent = '';
+    btn.disabled = false;
+  }
+}
+document.getElementById('loadBtn').addEventListener('click', loadCountries);
+document.getElementById('name').addEventListener('keydown', e => { if (e.key === 'Enter') loadCountries(); });
+</script>
+</body>
+</html>

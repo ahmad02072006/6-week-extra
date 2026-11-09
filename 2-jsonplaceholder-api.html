@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Week 2 - JSONPlaceholder Posts</title>
+<style>
+  body { font-family: system-ui, sans-serif; background:#f4f6fb; margin:0; padding:30px 16px; }
+  .wrap { max-width:760px; margin:auto; }
+  h1 { text-align:center; }
+  .controls { display:flex; gap:8px; justify-content:center; margin-bottom:20px; flex-wrap:wrap; }
+  input { padding:9px 12px; border:1px solid #ccc; border-radius:8px; min-width:220px; }
+  button { background:#0ea5e9; color:#fff; border:0; padding:9px 18px; border-radius:8px; cursor:pointer; font-size:1rem; }
+  button:disabled { opacity:.5; }
+  .post { background:#fff; padding:16px 20px; border-radius:12px; margin-bottom:12px; box-shadow:0 2px 10px rgba(0,0,0,.06); }
+  .post h3 { margin:0 0 6px; text-transform:capitalize; }
+  .post small { color:#64748b; }
+  #status { text-align:center; color:#475569; }
+  #error { text-align:center; color:#dc2626; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Blog Posts (JSONPlaceholder)</h1>
+  <div class="controls">
+    <input id="search" placeholder="Filter by title...">
+    <button id="loadBtn">Load Posts</button>
+  </div>
+  <p id="status"></p>
+  <p id="error"></p>
+  <div id="posts"></div>
+</div>
+
+<script>
+const API = 'https://jsonplaceholder.typicode.com/posts?_limit=12';
+let allPosts = [];
+
+async function loadPosts() {
+  const btn = document.getElementById('loadBtn');
+  btn.disabled = true;
+  document.getElementById('status').textContent = 'Loading...';
+  document.getElementById('error').textContent = '';
+  try {
+    const res = await fetch(API);
+    if (!res.ok) throw new Error('HTTP error: ' + res.status);
+    allPosts = await res.json();
+    render(allPosts);
+  } catch (err) {
+    document.getElementById('error').textContent = 'Could not load posts: ' + err.message;
+  } finally {
+    document.getElementById('status').textContent = '';
+    btn.disabled = false;
+  }
+}
+
+function render(posts) {
+  const box = document.getElementById('posts');
+  box.innerHTML = '';
+  posts.forEach(p => {
+    const div = document.createElement('div');
+    div.className = 'post';
+    const h = document.createElement('h3');
+    h.textContent = p.title;
+    const body = document.createElement('p');
+    body.textContent = p.body;
+    const small = document.createElement('small');
+    small.textContent = 'Post #' + p.id + ' - User ' + p.userId;
+    div.append(h, body, small);
+    box.appendChild(div);
+  });
+}
+
+document.getElementById('search').addEventListener('input', e => {
+  const q = e.target.value.toLowerCase();
+  render(allPosts.filter(p => p.title.toLowerCase().includes(q)));
+});
+document.getElementById('loadBtn').addEventListener('click', loadPosts);
+</script>
+</body>
+</html>

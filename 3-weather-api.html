@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Week 3 - Seoul Weather</title>
+<style>
+  body { font-family: system-ui, sans-serif; background:linear-gradient(160deg,#dbeafe,#f0fdf4); min-height:100vh; display:flex; justify-content:center; padding:40px 16px; margin:0; }
+  .card { background:#fff; max-width:460px; width:100%; padding:28px; border-radius:16px; box-shadow:0 4px 18px rgba(0,0,0,.1); text-align:center; height:fit-content; }
+  .temp { font-size:3.2rem; font-weight:700; margin:10px 0; }
+  .row { display:flex; justify-content:space-around; margin-top:14px; }
+  .row div { background:#f1f5f9; padding:10px 14px; border-radius:10px; }
+  button { background:#16a34a; color:#fff; border:0; padding:10px 20px; border-radius:8px; font-size:1rem; cursor:pointer; }
+  button:disabled { opacity:.5; }
+  #error { color:#dc2626; }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Seoul Weather</h1>
+  <button id="loadBtn">Get Weather</button>
+  <p id="status"></p>
+  <p id="error"></p>
+  <div id="result"></div>
+</div>
+
+<script>
+const API = 'https://api.open-meteo.com/v1/forecast?latitude=37.57&longitude=126.98&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code&timezone=Asia%2FSeoul';
+
+function describe(code) {
+  if (code === 0) return 'Clear sky';
+  if (code <= 3) return 'Partly cloudy';
+  if (code <= 48) return 'Fog';
+  if (code <= 67) return 'Rain';
+  if (code <= 77) return 'Snow';
+  if (code <= 82) return 'Rain showers';
+  return 'Thunderstorm';
+}
+
+async function loadWeather() {
+  const btn = document.getElementById('loadBtn');
+  btn.disabled = true;
+  document.getElementById('status').textContent = 'Loading...';
+  document.getElementById('error').textContent = '';
+  try {
+    const res = await fetch(API);
+    if (!res.ok) throw new Error('HTTP error: ' + res.status);
+    const data = await res.json();
+    const c = data.current;
+    document.getElementById('result').innerHTML = `
+      <div class="temp">${c.temperature_2m}°C</div>
+      <p>${describe(c.weather_code)}</p>
+      <div class="row">
+        <div>Humidity<br><b>${c.relative_humidity_2m}%</b></div>
+        <div>Wind<br><b>${c.wind_speed_10m} km/h</b></div>
+      </div>
+      <p><small>Updated: ${c.time}</small></p>`;
+  } catch (err) {
+    document.getElementById('error').textContent = 'Could not load weather: ' + err.message;
+  } finally {
+    document.getElementById('status').textContent = '';
+    btn.disabled = false;
+  }
+}
+document.getElementById('loadBtn').addEventListener('click', loadWeather);
+</script>
+</body>
+</html>
